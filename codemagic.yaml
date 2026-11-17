@@ -1,19 +1,58 @@
+workflows:
+  unsigned-ios-build:
+    name: Build Unsigned iOS IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install CocoaPods (if applicable)
+        script: |
+          if [ -f "Podfile" ]; then
+            pod install
+          elif [ -f "ios/Podfile" ]; then
+            cd ios && pod install
+          fi
       - name: Build unsigned .app
         script: |
-          # Enter the ios/ folder if your project is React Native or Flutter
           if [ -d "ios" ]; then cd ios; fi
 
-          # Find the workspace or project file automatically
           WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" | head -n 1)
           PROJECT=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
 
           if [ -n "$WORKSPACE" ]; then
             SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" | awk '/Schemes:/{getline; print $1; exit}')
-            xcodebuild build -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+            xcodebuild build \
+              -workspace "$WORKSPACE" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -sdk iphoneos \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO
           elif [ -n "$PROJECT" ]; then
             SCHEME=$(xcodebuild -list -project "$PROJECT" | awk '/Schemes:/{getline; print $1; exit}')
-            xcodebuild build -project "$PROJECT" -scheme "$SCHEME" -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+            xcodebuild build \
+              -project "$PROJECT" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -sdk iphoneos \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO
           else
             echo "Error: Could not find .xcworkspace or .xcodeproj"
             exit 1
           fi
+      - name: Package .app into unsigned .ipa
+        script: |
+          mkdir -p Payload
+          cp -r $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Release-iphoneos/*.app Payload/
+          zip -r unsigned_app.ipa Payload
+    artifacts:
+      - unsigned_app.ipa
