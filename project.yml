@@ -1,3 +1,4 @@
+
 name: CustomDesktop
 options:
   bundleIdPrefix: com.custom
@@ -9,7 +10,15 @@ targets:
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: Sources
+      - path: .
+        excludes:
+          - "*.yml"
+          - "*.yaml"
+          - "*.md"
+          - "*.txt"
+          - "LICENSE"
+          - ".git/**"
+          - ".github/**"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.custom.desktop
