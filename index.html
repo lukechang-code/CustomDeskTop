@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CustomDeskTop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="desktop-shell">
+      <div class="wallpaper" aria-hidden="true"></div>
+
+      <header class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>◔</span>
+          <span>📶</span>
+          <span>🔋</span>
+        </div>
+      </header>
+
+      <main class="viewport" id="viewport" aria-label="Desktop workspace">
+        <div class="workspace-content" id="workspaceContent">
+          <div class="desktop-grid">
+            <button class="app-icon sky" type="button">
+              <span class="icon glyph">💬</span>
+              <span class="label">Messages</span>
+            </button>
+            <button class="app-icon purple" type="button">
+              <span class="icon glyph">📷</span>
+              <span class="label">Photos</span>
+            </button>
+            <button class="app-icon green" type="button">
+              <span class="icon glyph">🎵</span>
+              <span class="label">Music</span>
+            </button>
+            <button class="app-icon red" type="button">
+              <span class="icon glyph">🧭</span>
+              <span class="label">Maps</span>
+            </button>
+            <button class="app-icon orange" type="button">
+              <span class="icon glyph">📝</span>
+              <span class="label">Notes</span>
+            </button>
+            <button class="app-icon blue" type="button">
+              <span class="icon glyph">📖</span>
+              <span class="label">Books</span>
+            </button>
+            <button class="app-icon gray" type="button">
+              <span class="icon glyph">⚙️</span>
+              <span class="label">Settings</span>
+            </button>
+            <button class="app-icon slate" type="button">
+              <span class="icon glyph">🗂️</span>
+              <span class="label">Files</span>
+            </button>
+            <button class="app-icon pink" type="button">
+              <span class="icon glyph">🛒</span>
+              <span class="label">Shop</span>
+            </button>
+            <button class="app-icon gold" type="button">
+              <span class="icon glyph">🧠</span>
+              <span class="label">Focus</span>
+            </button>
+          </div>
+
+          <section class="widget-panel">
+            <div class="widget-card compact">
+              <div class="widget-header">
+                <span>Today</span>
+                <span class="dot"></span>
+              </div>
+              <h2>Project Sprint</h2>
+              <p>Design review • 2:00 PM</p>
+            </div>
+
+            <div class="widget-card wide">
+              <div class="widget-header">
+                <span>Weather</span>
+                <span>28°</span>
+              </div>
+              <div class="weather-row">
+                <div class="sun">☀️</div>
+                <div>
+                  <strong>Sunny</strong>
+                  <p>Light breeze</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer class="dock" aria-label="App dock">
+        <button class="dock-item active" type="button">⌂</button>
+        <button class="dock-item" type="button">💬</button>
+        <button class="dock-item" type="button">📷</button>
+        <button class="dock-item" type="button">🎵</button>
+        <button class="dock-item" type="button">🧭</button>
+        <button class="dock-item" type="button">⚙️</button>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
