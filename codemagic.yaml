@@ -1,0 +1,37 @@
+workflows:
+  unsigned-ios-build:
+    name: Build Unsigned CustomDesktop IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Generate Xcode project from project.yml
+        script: |
+          if ! command -v xcodegen &> /dev/null; then
+            brew install xcodegen
+          fi
+          xcodegen generate
+      - name: Build unsigned .app
+        script: |
+          xcodebuild build \
+            -project "CustomDesktop.xcodeproj" \
+            -scheme "CustomDesktop" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Package .app into unsigned .ipa
+        script: |
+          mkdir -p Payload
+          cp -r build/Build/Products/Release-iphoneos/CustomDesktop.app Payload/
+          zip -r CustomDesktop.ipa Payload
+    artifacts:
+      - CustomDesktop.ipa
