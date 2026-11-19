@@ -11,7 +11,7 @@ struct PXSDesktopCloneApp: App {
                 .environmentObject(desktopState)
                 .preferredColorScheme(.dark)
         }
-        .onChange(of: scenePhase) { _, newPhase in
+        .onChange(of: scenePhase) { newPhase in
             if newPhase == .background || newPhase == .inactive {
                 desktopState.saveWorkspace()
             }
