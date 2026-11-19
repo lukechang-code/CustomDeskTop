@@ -396,7 +396,7 @@ struct DesktopWindowView: View {
                         .font(.body)
                         .scrollContentBackground(.hidden)
                         .background(Color(white: 0.12))
-                        .onChange(of: window.noteText) { _, _ in
+                        .onChange(of: window.noteText) { _ in
                             state.saveWorkspace()
                         }
                 case .files:
