@@ -299,3 +299,4 @@ final class DesktopState: ObservableObject {
 
     func bringToFront(_ id: UUID) {
         guard let index = windows.firstIndex(where: { $0.id == id }) else { return }
+    }
