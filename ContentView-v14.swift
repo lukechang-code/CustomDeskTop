@@ -8,6 +8,7 @@ enum DesktopAppType: String, Codable, CaseIterable, Identifiable {
     case browser = "Browser"
     case youtube = "YouTube"
     case netflix = "Netflix"
+    case tidal = "Tidal Music"
     case notes = "Notes"
     case files = "Files"
     case terminal = "Terminal"
@@ -16,7 +17,7 @@ enum DesktopAppType: String, Codable, CaseIterable, Identifiable {
 
     var isWebApp: Bool {
         switch self {
-        case .browser, .youtube, .netflix:
+        case .browser, .youtube, .netflix, .tidal:
             return true
         default:
             return false
@@ -28,6 +29,7 @@ enum DesktopAppType: String, Codable, CaseIterable, Identifiable {
         case .browser: return "https://apple.com"
         case .youtube: return "https://youtube.com"
         case .netflix: return "https://netflix.com"
+        case .tidal: return "https://tidal.com"
         default: return ""
         }
     }
@@ -37,6 +39,7 @@ enum DesktopAppType: String, Codable, CaseIterable, Identifiable {
         case .browser: return "safari.fill"
         case .youtube: return "play.rectangle.fill"
         case .netflix: return "n.square.fill"
+        case .tidal: return "music.note.list"
         case .notes: return "note.text"
         case .files: return "folder.fill"
         case .terminal: return "terminal.fill"
@@ -48,6 +51,7 @@ enum DesktopAppType: String, Codable, CaseIterable, Identifiable {
         case .browser: return .blue
         case .youtube: return Color(red: 1.0, green: 0.0, blue: 0.0)
         case .netflix: return Color(red: 0.89, green: 0.04, blue: 0.08)
+        case .tidal: return Color(red: 0.0, green: 0.85, blue: 0.85)
         case .notes: return .yellow
         case .files: return .cyan
         case .terminal: return .green
@@ -61,6 +65,15 @@ enum WallpaperTheme: String, Codable, CaseIterable, Identifiable {
     case midnight = "Midnight"
 
     var id: String { rawValue }
+}
+
+enum WindowResizeCorner: CaseIterable, Identifiable {
+    case topLeft
+    case topRight
+    case bottomLeft
+    case bottomRight
+
+    var id: Self { self }
 }
 
 struct PersistedWindow: Codable, Identifiable {
@@ -77,6 +90,7 @@ struct PersistedWindow: Codable, Identifiable {
     var isMinimized: Bool
     var isMaximized: Bool = false
     var preMaximizeFrame: CGRect? = nil
+    var zoomScale: CGFloat = 1.0
 }
 
 struct SavedWorkspaceSnapshot: Codable {
@@ -106,6 +120,13 @@ final class DesktopState: ObservableObject {
     private var topZIndex: Double = 10
 
     var webViewStore: [UUID: WKWebView] = [:]
+
+    var topMostWindowID: UUID? {
+        windows
+            .filter { !$0.isMinimized }
+            .max(by: { $0.zIndex < $1.zIndex })?
+            .id
+    }
 
     init() {
         if let rawTheme = UserDefaults.standard.string(forKey: wallpaperKey),
@@ -257,40 +278,24 @@ final class DesktopState: ObservableObject {
         saveWorkspace()
     }
 
+    func openOrFocusTidal(url: String = "https://tidal.com") {
+        if let existingIndex = windows.firstIndex(where: { $0.appType == .tidal }) {
+            let id = windows[existingIndex].id
+            windows[existingIndex].urlString = url
+            bringToFront(id)
+            if let parsed = URL(string: url) {
+                webViewStore[id]?.load(URLRequest(url: parsed))
+            }
+        } else {
+            openApp(.tidal)
+            if let newWindow = windows.last, newWindow.appType == .tidal, url != DesktopAppType.tidal.defaultURL {
+                if let idx = windows.firstIndex(where: { $0.id == newWindow.id }) {
+                    windows[idx].urlString = url
+                    saveWorkspace()
+                }
+            }
+        }
+    }
+
     func bringToFront(_ id: UUID) {
         guard let index = windows.firstIndex(where: { $0.id == id }) else { return }
-        topZIndex += 1
-        windows[index].zIndex = topZIndex
-        windows[index].isMinimized = false
-        saveWorkspace()
-    }
-
-    func closeWindow(_ id: UUID) {
-        if windows.count == 1 {
-            archiveCurrentWorkspaceForReopen()
-        }
-        webViewStore.removeValue(forKey: id)
-        windows.removeAll { $0.id == id }
-        saveWorkspace()
-    }
-
-    func toggleMinimize(_ id: UUID) {
-        guard let index = windows.firstIndex(where: { $0.id == id }) else { return }
-        windows[index].isMinimized.toggle()
-        saveWorkspace()
-    }
-
-    func toggleMaximize(_ id: UUID, desktopSize: CGSize) {
-        guard let index = windows.firstIndex(where: { $0.id == id }) else { return }
-        if windows[index].isMaximized {
-            if let prev = windows[index].preMaximizeFrame {
-                windows[index].posX = prev.midX
-                windows[index].posY = prev.midY
-                windows[index].width = prev.width
-                windows[index].height = prev.height
-            }
-            windows[index].isMaximized = false
-        } else {
-            windows[index].preMaximizeFrame = CGRect(
-                x: windows[index].posX - windows[index].width / 2,
-                y: windows[index].posY - windows[index].height / 2,
